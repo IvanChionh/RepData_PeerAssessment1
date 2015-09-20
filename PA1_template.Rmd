@@ -1,25 +1,88 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template.Rmd"
+output: html_document
 ---
 
+This assignment will be described in multiple parts. You will need to write a report that answers the questions detailed below. Ultimately, you will need to complete the entire assignment in a single R markdown document that can be processed by knitr and be transformed into an HTML file.
 
-## Loading and preprocessing the data
+Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.
 
+For the plotting aspects of this assignment, feel free to use any plotting system in R (i.e., base, lattice, ggplot2)
 
+Fork/clone the GitHub repository created for this assignment. You will submit this assignment by pushing your completed files into your forked repository on GitHub. The assignment submission will consist of the URL to your GitHub repository and the SHA-1 commit ID for your repository state.
 
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
+NOTE: The GitHub repository also contains the dataset for the assignment so you do not have to download the data separately.
 
 
-## Imputing missing values
+Loading and preprocessing the data
+
+Show any code that is needed to
+
+    Load the data (i.e. read.csv())
+
+    Process/transform the data (if necessary) into a format suitable for your analysis
 
 
+```{r}
+# loading the data
+activityData <- read.csv("C:/Users/Ivan/Documents/R/05_RR/activity.csv", na.strings = c("NA"))
 
-## Are there differences in activity patterns between weekdays and weekends?
+```
+
+What is mean total number of steps taken per day?
+
+For this part of the assignment, you can ignore the missing values in the dataset.
+
+    Calculate the total number of steps taken per day
+
+    If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
+
+    Calculate and report the mean and median of the total number of steps taken per day
+
+```{r}
+library(plyr)
+
+totalDaySteps <- ddply(na.omit(activityData), .(date), summarize, sumSteps = sum(steps))
+
+library(ggplot2)
+qplot(sumSteps, data=totalDaySteps, main="Total number of steps taken each day", xlab="Total Steps", ylab="Frequency")
+
+
+meanDaySteps <- ddply(na.omit(activityData), .(date), summarize, meanSteps = mean(steps))
+medianDaySteps <- ddply(na.omit(activityData), .(date), summarize, MedianSteps = median(steps))
+
+mean(totalDaySteps$sumSteps)
+median(totalDaySteps$sumSteps)
+
+```
+
+What is the average daily activity pattern?
+
+    Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+    Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+    
+
+```{r}
+
+# creating data.frame to calculate the mean of 5-min intervals across all days for available data
+intervalMean <- ddply(na.omit(activityData), .(interval), summarize, meanSteps = mean(steps))
+
+
+# setting the plot space parameters with par and mfrow to set plot for one row and column
+par(mfrow = c(1, 1))
+
+# record max value for average number of steps for intervals
+maxSteps <- intervalMean[intervalMean$meanSteps == max(intervalMean$meanSteps),]
+
+# Plotting the time series plot
+dailyPatternPlot <- ggplot(intervalMean, aes(x = interval, y = meanSteps))
+dailyPatternPlot + geom_line(linetype=1) + labs(x ="5-minute Intervals") + labs(y="Average Number of Steps(across days)") + labs(title="Average daily activity pattern") + theme_bw() + geom_vline(xintercept = maxSteps$interval, color="blue", linetype="longdash")
+
+# checking the max value for average number of steps for intervals
+maxSteps <- intervalMean[intervalMean$meanSteps == max(intervalMean$meanSteps),]
+maxSteps
+```
+Therefore, the mean number of steps is 206 while the maximum number of steps is 835.
+
+
